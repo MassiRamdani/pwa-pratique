@@ -1,20 +1,26 @@
 console.log("hello depuis le service worker");
+const cacheName = 'veille-techno' + '1.4';
 
-const cacheName = 'veille-techno' + '1.2';
+ 
+ 
+
 
 self.addEventListener('install', (evt) => {
     console.log(`sw installé à ${new Date().toLocaleTimeString()}`);
 
     const cachePromise = caches.open(cacheName).then(cache => {
         return cache.addAll([
+            // 9.4 Ajouter les librairies iDB
+            'idb/idb.js',
+            'idb/database.js',
             'index.html',
             'main.js',
             'style.css',
             'vendors/bootstrap4.min.css',
             'add_techno.html',
             'add_techno.js',
-            'contact.html',
-            'contact.js',
+            // 'contact.html',
+            // 'contact.js',
         ])
         .then(console.log('cache initialisé'))
         .catch(console.err);
@@ -24,7 +30,6 @@ self.addEventListener('install', (evt) => {
 
 });
 
- 
 
 self.addEventListener('activate', (evt) => {
     console.log(`sw activé à ${new Date().toLocaleTimeString()}`); 
@@ -41,10 +46,21 @@ self.addEventListener('activate', (evt) => {
     evt.waitUntil(cacheCleanPromise);
 });
 
- 
-	
- //..
 self.addEventListener('fetch', (evt) => {
+	console.log('sw intercepte la requête suivante via fetch', evt);
+	console.log('url interceptée', evt.request.url);
+});
+
+//..
+self.addEventListener('fetch', (evt) => {
+
+    // 9.6 Synchroniser les données au retour de la connexion
+    // console.log('evt', evt);
+    // to prevent this error when posting a form: 
+    // "Uncaught (in promise) TypeError: Request method 'POST' is unsupported at caches.open.then.cache"
+    if(evt.request.method === 'POST') {
+        return;
+    }
 
     // 5.3 Stratégie de network first with cache fallback
     // On doit envoyer une réponse
@@ -109,7 +125,60 @@ self.addEventListener('fetch', (evt) => {
 
 
 });
- 
+
+
+// 7.3 Notifications persistantes (envoyées depuis le service worker)
+// self.registration.showNotification("Notification du SW", {
+//     body:"je suis une notification dite persistante",
+  
+//     // 7.4 Options de notifications grâce aux actions
+//     actions:[
+//         {action:"accept", title:"accepter"},
+//         {action: "refuse", title: "refuser"}
+//     ]
+// })
+
+// 7.4 Options de notifications grâce aux actions
+// Ecouteur au clic d'un des deux boutons de la notification
+// self.addEventListener("notificationclick", evt => {
+//     console.log("notificationclick evt", evt);
+//     if(evt.action === "accept"){
+//         console.log("vous avez accepté");
+//     } else if(evt.action === "refuse"){
+//         console.log("vous avez refusé");
+//     } else{
+//         console.log("vous avez cliqué sur la notification (pas sur un bouton)");
+//     }
+
+//     // 7.5 Fermer programmatiquement une notification
+//     evt.notification.close();
+// })
+
+// 8.1 Intercepter une notification push
+self.addEventListener("push", evt => {
+    console.log("push event", evt);
+    console.log("data envoyée par la push notification :", evt.data.text());
+
+    // 8.1 afficher son contenu dans une notification
+    const title = evt.data.text();
+    const objNotification = {
+        body: "ça fonctionne", 
+        icon : "images/icons/icon-72x72.png"
+    };
+    self.registration.showNotification(title, objNotification);
+})
+/*
+// 7.3 Notifications persistantes (envoyées depuis le service worker)
+// Affichage de la notification
+self.registration.showNotification("Notification du SW", {
+    body:"je suis une notification dite persistante"
+})
+
+// Ecoute de l'événement close
+self.addEventListener("notificationclose", evt => {
+    console.log("Notification fermée", evt);
+})
+
 // 7.3 Notifications persistantes (envoyées depuis le service worker)
 self.registration.showNotification("Notification du SW", {
     body:"je suis une notification dite persistante",
@@ -132,19 +201,10 @@ self.addEventListener("notificationclick", evt => {
     } else{
         console.log("vous avez cliqué sur la notification (pas sur un bouton)");
     }
-})
-// 7.4 Options de notifications grâce aux actions
-// Ecouteur au clic d'un des deux boutons de la notification
-self.addEventListener("notificationclick", evt => {
-    console.log("notificationclick evt", evt);
-    if(evt.action === "accept"){
-        console.log("vous avez accepté");
-    } else if(evt.action === "refuse"){
-        console.log("vous avez refusé");
-    } else{
-        console.log("vous avez cliqué sur la notification (pas sur un bouton)");
-    }
+
+        // 7.5 Fermer programmatiquement une notification
+        evt.notification.close();
+
+})*/
   
-    // 7.5 Fermer programmatiquement une notification
-    evt.notification.close();
-})
+
