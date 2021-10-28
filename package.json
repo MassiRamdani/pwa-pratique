@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/massinissa06/pwa-pratique#readme",
   "dependencies": {
+    "live-server": "^1.2.1",
     "web-push": "^3.4.5"
   }
 }
